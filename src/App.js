@@ -3,19 +3,13 @@ import { useState } from "react";
 import Blog from "./components/Blog";
 
 function App() {
-  const [name, setName] = useState("");
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
   const [blogs, setBlogs] = useState([]);
 
-  const handleSubmit = (event) => {
+  const fetchBlogs = (event) => {
     event.preventDefault();
-    fetch("http://localhost:8069/api/blogs", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-      },
-      // mode: "nocors",
-      body: `${encodeURIComponent("uuid")}=${encodeURIComponent(45)}`,
-    })
+    fetch("http://localhost:8069/api/blogs", {})
       .then((response) => response.json())
       .then((data) => {
         console.log(data.blogs);
@@ -23,27 +17,72 @@ function App() {
       });
   };
 
+  const submitBlog = async () => {
+    console.log("Title ", title);
+    console.log("content ", content);
+    const blogData = {
+      title: title,
+      content: content,
+    };
+
+    const url = "http://localhost:8069/api/blogs";
+    const resp = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+      },
+      body: Object.keys(blogData)
+        .map(
+          (key) =>
+            encodeURIComponent(key) + "=" + encodeURIComponent(blogData[key])
+        )
+        .join("&"),
+    });
+    const createdBlog = await resp.json();
+    console.log("Created " + createdBlog);
+  };
+
   return (
-    <div className="App">
-      {/* <header className="App-header"></header> */}
-      <form onSubmit={handleSubmit}>
+    <div class="container">
+      <form>
+        <div class="form-group">
+          <label for="blogTitle">Title</label>
+          <input
+            type="text"
+            class="form-control"
+            id="blogTitle"
+            placeholder="Blog Title"
+            onChange={(e) => setTitle(e.target.value)}
+          />
+        </div>
         <div class="form-group">
           <div>
-            <label>What's your name</label>
-            <input
+            <label for="blogContent">Blog Content</label>
+            <textarea
               type="text"
               class="form-control"
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => setContent(e.target.value)}
             />
           </div>
         </div>
-        <input type="submit" value="Post"></input>
+        <div class="form-row">
+          <div class="col">
+            <button onClick={fetchBlogs} className="btn btn-primary">
+              Get Blogs
+            </button>
+          </div>
+          <div class="col">
+            <button onClick={submitBlog} className="btn btn-primary">
+              Submit Blog
+            </button>
+          </div>
+        </div>
       </form>
-      <div>
+      <div class="row">
         {blogs.length !== 0 ? (
           blogs.map((blog) => <Blog key={blog.id} blog={blog} />)
         ) : (
-          <p>Nope blog.</p>
+          <p class="container">No blog.</p>
         )}
       </div>
       {}
